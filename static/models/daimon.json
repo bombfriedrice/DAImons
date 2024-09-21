@@ -1,0 +1,36 @@
+{
+    "metadata": {
+        "version": 4.5,
+        "type": "Object",
+        "generator": "Object3D.toJSON"
+    },
+    "geometries": [
+        {
+            "uuid": "8F7F7724-0C83-4B30-9AB3-8B98E7A9F70B",
+            "type": "SphereGeometry",
+            "radius": 1,
+            "widthSegments": 32,
+            "heightSegments": 16
+        }
+    ],
+    "materials": [
+        {
+            "uuid": "B4C1D2E4-7A8D-4F5C-9E0A-1B3C5D7F9A2E",
+            "type": "MeshPhongMaterial",
+            "color": 16777215,
+            "emissive": 0,
+            "specular": 1118481,
+            "shininess": 30
+        }
+    ],
+    "object": {
+        "uuid": "A1B2C3D4-E5F6-4A5B-8C7D-9E0F1A2B3C4D",
+        "type": "Mesh",
+        "name": "Daimon",
+        "geometry": "8F7F7724-0C83-4B30-9AB3-8B98E7A9F70B",
+        "material": "B4C1D2E4-7A8D-4F5C-9E0A-1B3C5D7F9A2E",
+        "position": [0, 0, 0],
+        "rotation": [0, 0, 0],
+        "scale": [1, 1, 1]
+    }
+}
