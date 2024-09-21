@@ -1,6 +1,7 @@
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const sendButton = document.getElementById('send-button');
+const characterSelect = document.getElementById('character-select');
 
 function addMessage(sender, message) {
     const messageElement = document.createElement('div');
@@ -11,6 +12,7 @@ function addMessage(sender, message) {
 
 function sendMessage() {
     const message = chatInput.value.trim();
+    const selectedCharacter = characterSelect.value;
     if (message) {
         addMessage('You', message);
         chatInput.value = '';
@@ -22,13 +24,20 @@ function sendMessage() {
             },
             body: JSON.stringify({
                 message: message,
-                characterSettings: daimonCharacter.getSettings(),
+                characters: characters.map(c => c.getSettings()),
+                selectedCharacter: selectedCharacter
             }),
         })
         .then(response => response.json())
         .then(data => {
-            if (data.message) {
-                addMessage('Daimon', data.message);
+            if (data.messages) {
+                data.messages.forEach(msg => {
+                    addMessage(msg.character, msg.message);
+                    const object = scene.getObjectByName(msg.character);
+                    if (object) {
+                        panCameraToObject(object);
+                    }
+                });
             } else if (data.error) {
                 console.error('Error:', data.error);
                 addMessage('System', 'Sorry, there was an error processing your message.');
@@ -46,4 +55,12 @@ chatInput.addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         sendMessage();
     }
+});
+
+// Populate character select dropdown
+characters.forEach(character => {
+    const option = document.createElement('option');
+    option.value = character.name;
+    option.textContent = character.name;
+    characterSelect.appendChild(option);
 });

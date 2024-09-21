@@ -1,4 +1,5 @@
 let scene, camera, renderer, daimon, ground, cube, sphere;
+let currentSpeaker = null;
 
 function init() {
     // Create scene
@@ -35,6 +36,8 @@ function init() {
     const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff3333 });
     cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
     cube.position.set(-2, 0.5, 0);
+    cube.name = 'Cubey';
+    addLabel(cube, 'Cubey');
     scene.add(cube);
 
     // Create sphere
@@ -42,6 +45,8 @@ function init() {
     const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x3333ff });
     sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
     sphere.position.set(2, 0.5, 0);
+    sphere.name = 'Sphera';
+    addLabel(sphere, 'Sphera');
     scene.add(sphere);
 
     // Load Daimon character
@@ -59,6 +64,8 @@ function loadDaimonCharacter() {
     loader.load('static/models/daimon.json', (object) => {
         daimon = object;
         daimon.position.set(0, 1, 0);
+        daimon.name = 'Daimon';
+        addLabel(daimon, 'Daimon');
         scene.add(daimon);
     });
 }
@@ -69,8 +76,45 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight * 0.75);
 }
 
+function addLabel(object, text) {
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    context.font = '24px Arial';
+    context.fillStyle = 'white';
+    context.fillText(text, 0, 24);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+    const sprite = new THREE.Sprite(spriteMaterial);
+    sprite.position.set(0, 1.5, 0);
+    sprite.scale.set(2, 1, 1);
+
+    object.add(sprite);
+}
+
+function panCameraToObject(object) {
+    if (currentSpeaker !== object) {
+        currentSpeaker = object;
+        const targetPosition = new THREE.Vector3().copy(object.position);
+        targetPosition.y += 1;
+        targetPosition.z += 3;
+
+        new TWEEN.Tween(camera.position)
+            .to(targetPosition, 1000)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start();
+
+        new TWEEN.Tween(camera.rotation)
+            .to({ x: 0, y: 0, z: 0 }, 1000)
+            .easing(TWEEN.Easing.Quadratic.Out)
+            .start();
+    }
+}
+
 function animate() {
     requestAnimationFrame(animate);
+
+    TWEEN.update();
 
     if (daimon) {
         daimon.rotation.y += 0.01;
