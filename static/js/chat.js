@@ -12,7 +12,6 @@ function addMessage(sender, message) {
 
 function sendMessage() {
     const message = chatInput.value.trim();
-    const selectedCharacter = characterSelect.value;
     if (message) {
         addMessage('You', message);
         chatInput.value = '';
@@ -25,7 +24,6 @@ function sendMessage() {
             body: JSON.stringify({
                 message: message,
                 characters: characters.map(c => c.getSettings()),
-                selectedCharacter: selectedCharacter
             }),
         })
         .then(response => response.json())

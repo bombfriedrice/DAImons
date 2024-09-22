@@ -1,11 +1,12 @@
 from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
 import os
-import random
 
 app = Flask(__name__)
 api_key = os.environ['GPT4O_MINI_API_KEY']
 client = OpenAI(api_key=api_key)
+
+conversation_history = []
 
 @app.route('/')
 def index():
@@ -13,52 +14,33 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    global conversation_history
     data = request.json
     user_message = data['message']
     characters = data['characters']
-    selected_character = data['selectedCharacter']
+    
+    conversation_history.append({"role": "user", "content": user_message})
     
     responses = []
     
-    # Generate response for the selected character
-    selected_char_settings = next((c for c in characters if c.startswith(f"Name: {selected_character}")), None)
-    if selected_char_settings:
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": f"You are a character with the following traits: {selected_char_settings}"},
-                    {"role": "user", "content": user_message}
-                ],
-                max_tokens=150,
-                n=1,
-                temperature=0.7,
-            )
-            response_text = response.choices[0].message.content.strip()
-            responses.append({"character": selected_character, "message": response_text})
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-    
-    # Randomly select 1-2 other characters to respond
-    other_characters = [c for c in characters if not c.startswith(f"Name: {selected_character}")]
-    num_responses = random.randint(1, min(2, len(other_characters)))
-    responding_characters = random.sample(other_characters, num_responses)
-    
-    for char_settings in responding_characters:
+    for char_settings in characters:
         char_name = char_settings.split(',')[0].split(':')[1].strip()
+        messages = [
+            {"role": "system", "content": f"You are a character with the following traits: {char_settings}"},
+        ] + conversation_history
+        
         try:
             response = client.chat.completions.create(
                 model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": f"You are a character with the following traits: {char_settings}"},
-                    {"role": "user", "content": user_message}
-                ],
+                messages=messages + [{"role": "system", "content": "Decide if you want to respond. If yes, provide your response. If no, say 'NO_RESPONSE'."}],
                 max_tokens=150,
                 n=1,
                 temperature=0.7,
             )
             response_text = response.choices[0].message.content.strip()
-            responses.append({"character": char_name, "message": response_text})
+            if response_text != "NO_RESPONSE":
+                responses.append({"character": char_name, "message": response_text})
+                conversation_history.append({"role": "assistant", "content": f"{char_name}: {response_text}"})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
