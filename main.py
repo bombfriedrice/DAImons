@@ -1,10 +1,11 @@
 from flask import Flask, render_template, request, jsonify
-import openai
-from config import GPT4O_MINI_API_KEY
+from openai import OpenAI
+import os
 import random
 
 app = Flask(__name__)
-openai.api_key = GPT4O_MINI_API_KEY
+api_key = os.environ['GPT4O_MINI_API_KEY']
+client = OpenAI(api_key=api_key)
 
 @app.route('/')
 def index():
@@ -23,7 +24,7 @@ def chat():
     selected_char_settings = next((c for c in characters if c.startswith(f"Name: {selected_character}")), None)
     if selected_char_settings:
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": f"You are a character with the following traits: {selected_char_settings}"},
@@ -33,7 +34,7 @@ def chat():
                 n=1,
                 temperature=0.7,
             )
-            response_text = response.choices[0].message['content'].strip()
+            response_text = response.choices[0].message.content.strip()
             responses.append({"character": selected_character, "message": response_text})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
@@ -46,7 +47,7 @@ def chat():
     for char_settings in responding_characters:
         char_name = char_settings.split(',')[0].split(':')[1].strip()
         try:
-            response = openai.ChatCompletion.create(
+            response = client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": f"You are a character with the following traits: {char_settings}"},
@@ -56,7 +57,7 @@ def chat():
                 n=1,
                 temperature=0.7,
             )
-            response_text = response.choices[0].message['content'].strip()
+            response_text = response.choices[0].message.content.strip()
             responses.append({"character": char_name, "message": response_text})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
