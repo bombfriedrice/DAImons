@@ -1,10 +1,10 @@
 from flask import Flask, render_template, request, jsonify
 import openai
-from config import OPENAI_API_KEY
+from config import GPT4O_MINI_API_KEY
 import random
 
 app = Flask(__name__)
-openai.api_key = OPENAI_API_KEY
+openai.api_key = GPT4O_MINI_API_KEY
 
 @app.route('/')
 def index():
@@ -25,7 +25,7 @@ def chat():
         prompt = f"You are a character with the following traits: {selected_char_settings}. Respond to: {user_message}"
         try:
             response = openai.Completion.create(
-                engine="text-davinci-002",
+                model="gpt-4o-mini",
                 prompt=prompt,
                 max_tokens=150,
                 n=1,
@@ -46,7 +46,7 @@ def chat():
         prompt = f"You are a character with the following traits: {char_settings}. Respond to: {user_message}"
         try:
             response = openai.Completion.create(
-                engine="text-davinci-002",
+                model="gpt-4o-mini",
                 prompt=prompt,
                 max_tokens=150,
                 n=1,
