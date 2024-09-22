@@ -1,28 +1,18 @@
-class DaimonCharacter {
-    constructor(name, friendliness, knowledgeLevel) {
+class Character {
+    constructor(name, friendliness, knowledgeLevel, personality) {
         this.name = name;
         this.friendliness = friendliness;
         this.knowledgeLevel = knowledgeLevel;
-    }
-
-    getSettings() {
-        return `Name: ${this.name}, Friendliness: ${this.friendliness}, Knowledge Level: ${this.knowledgeLevel}`;
-    }
-}
-
-class Character extends DaimonCharacter {
-    constructor(name, friendliness, knowledgeLevel, personality) {
-        super(name, friendliness, knowledgeLevel);
         this.personality = personality;
     }
 
     getSettings() {
-        return `${super.getSettings()}, Personality: ${this.personality}`;
+        return `Name: ${this.name}, Friendliness: ${this.friendliness}, Knowledge Level: ${this.knowledgeLevel}, Personality: ${this.personality}`;
     }
 }
 
-const daimonCharacter = new Character('Daimon', 'friendly', 'high', 'wise and helpful');
-const cubeCharacter = new Character('Cubey', 'playful', 'medium', 'energetic and curious');
-const sphereCharacter = new Character('Sphera', 'calm', 'high', 'philosophical and patient');
+const rjmonCharacter = new Character('RJmon', 'friendly', 'high', 'wise and helpful');
+const agumonCharacter = new Character('Agumon', 'playful', 'medium', 'energetic and curious');
+const veemonCharacter = new Character('Veemon', 'calm', 'high', 'philosophical and patient');
 
-const characters = [daimonCharacter, cubeCharacter, sphereCharacter];
+const characters = [rjmonCharacter, agumonCharacter, veemonCharacter];

@@ -3,8 +3,13 @@ from openai import OpenAI
 import os
 
 app = Flask(__name__)
-api_key = os.environ['GPT4O_MINI_API_KEY']
-client = OpenAI(api_key=api_key)
+
+try:
+    api_key = os.environ['GPT4O_MINI_API_KEY']
+    client = OpenAI(api_key=api_key)
+except KeyError:
+    print("Error: GPT4O_MINI_API_KEY environment variable is not set.")
+    client = None
 
 conversation_history = []
 
@@ -14,6 +19,9 @@ def index():
 
 @app.route('/chat', methods=['POST'])
 def chat():
+    if client is None:
+        return jsonify({'error': 'OpenAI API key is not set. Please set the GPT4O_MINI_API_KEY environment variable.'}), 500
+
     global conversation_history
     data = request.json
     user_message = data['message']

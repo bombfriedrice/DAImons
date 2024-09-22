@@ -1,4 +1,6 @@
-let scene, camera, renderer, daimon, ground, cube, sphere;
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
+let scene, camera, renderer;
 let currentSpeaker = null;
 
 function init() {
@@ -27,30 +29,14 @@ function init() {
     // Create ground plane
     const groundGeometry = new THREE.PlaneGeometry(20, 20);
     const groundMaterial = new THREE.MeshStandardMaterial({ color: 0x33ff33 });
-    ground = new THREE.Mesh(groundGeometry, groundMaterial);
+    const ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.rotation.x = -Math.PI / 2;
     scene.add(ground);
 
-    // Create cube
-    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-    const cubeMaterial = new THREE.MeshStandardMaterial({ color: 0xff3333 });
-    cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-    cube.position.set(-2, 0.5, 0);
-    cube.name = 'Cubey';
-    addLabel(cube, 'Cubey');
-    scene.add(cube);
-
-    // Create sphere
-    const sphereGeometry = new THREE.SphereGeometry(0.5, 32, 32);
-    const sphereMaterial = new THREE.MeshStandardMaterial({ color: 0x3333ff });
-    sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-    sphere.position.set(2, 0.5, 0);
-    sphere.name = 'Sphera';
-    addLabel(sphere, 'Sphera');
-    scene.add(sphere);
-
-    // Load Daimon character
-    loadDaimonCharacter();
+    // Load GLB models
+    loadGLBModel('static/models/agumon_sculpt.glb', new THREE.Vector3(-2, 0, 0), 0.5, 'Agumon');
+    loadGLBModel('static/models/rjmon.glb', new THREE.Vector3(0, 0, 0), 0.5, 'RJmon');
+    loadGLBModel('static/models/digimon_linkz_-_veemon.glb', new THREE.Vector3(2, 0, 0), 0.5, 'Veemon');
 
     // Handle window resize
     window.addEventListener('resize', onWindowResize, false);
@@ -59,14 +45,15 @@ function init() {
     animate();
 }
 
-function loadDaimonCharacter() {
-    const loader = new THREE.ObjectLoader();
-    loader.load('static/models/daimon.json', (object) => {
-        daimon = object;
-        daimon.position.set(0, 1, 0);
-        daimon.name = 'Daimon';
-        addLabel(daimon, 'Daimon');
-        scene.add(daimon);
+function loadGLBModel(file, position, scale, name) {
+    const loader = new GLTFLoader();
+    loader.load(file, (gltf) => {
+        const model = gltf.scene;
+        model.position.set(position.x, position.y, position.z);
+        model.scale.set(scale, scale, scale);
+        model.name = name;
+        addLabel(model, name);
+        scene.add(model);
     });
 }
 
@@ -115,15 +102,6 @@ function animate() {
     requestAnimationFrame(animate);
 
     TWEEN.update();
-
-    if (daimon) {
-        daimon.rotation.y += 0.01;
-    }
-
-    cube.rotation.x += 0.01;
-    cube.rotation.y += 0.01;
-
-    sphere.position.y = 0.5 + Math.sin(Date.now() * 0.001) * 0.5;
 
     renderer.render(scene, camera);
 }
