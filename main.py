@@ -22,17 +22,19 @@ def chat():
     # Generate response for the selected character
     selected_char_settings = next((c for c in characters if c.startswith(f"Name: {selected_character}")), None)
     if selected_char_settings:
-        prompt = f"You are a character with the following traits: {selected_char_settings}. Respond to: {user_message}"
         try:
-            response = openai.Completion.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-4o-mini",
-                prompt=prompt,
+                messages=[
+                    {"role": "system", "content": f"You are a character with the following traits: {selected_char_settings}"},
+                    {"role": "user", "content": user_message}
+                ],
                 max_tokens=150,
                 n=1,
-                stop=None,
                 temperature=0.7,
             )
-            responses.append({"character": selected_character, "message": response.choices[0].text.strip()})
+            response_text = response.choices[0].message['content'].strip()
+            responses.append({"character": selected_character, "message": response_text})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
@@ -43,17 +45,19 @@ def chat():
     
     for char_settings in responding_characters:
         char_name = char_settings.split(',')[0].split(':')[1].strip()
-        prompt = f"You are a character with the following traits: {char_settings}. Respond to: {user_message}"
         try:
-            response = openai.Completion.create(
+            response = openai.ChatCompletion.create(
                 model="gpt-4o-mini",
-                prompt=prompt,
+                messages=[
+                    {"role": "system", "content": f"You are a character with the following traits: {char_settings}"},
+                    {"role": "user", "content": user_message}
+                ],
                 max_tokens=150,
                 n=1,
-                stop=None,
                 temperature=0.7,
             )
-            responses.append({"character": char_name, "message": response.choices[0].text.strip()})
+            response_text = response.choices[0].message['content'].strip()
+            responses.append({"character": char_name, "message": response_text})
         except Exception as e:
             return jsonify({'error': str(e)}), 500
     
