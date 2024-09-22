@@ -27,6 +27,9 @@ def chat():
     user_message = data['message']
     characters = data['characters']
     
+    print(f"Received message: {user_message}")
+    print(f"Characters: {characters}")
+    
     conversation_history.append({"role": "user", "content": user_message})
     
     responses = []
@@ -50,6 +53,7 @@ def chat():
                 responses.append({"character": char_name, "message": response_text})
                 conversation_history.append({"role": "assistant", "content": f"{char_name}: {response_text}"})
         except Exception as e:
+            print(f"Error calling OpenAI API: {str(e)}")
             return jsonify({'error': str(e)}), 500
     
     return jsonify({'messages': responses})

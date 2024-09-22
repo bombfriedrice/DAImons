@@ -3,24 +3,27 @@ import { GLTFLoader } from 'https://unpkg.com/three@0.128.0/examples/jsm/loaders
 let scene, camera, renderer;
 let currentSpeaker = null;
 
-function init() {
+async function init() {
     console.log('Initializing Three.js scene');
     // Create scene
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0x87CEEB);  // Sky blue background
     console.log('Scene created');
+    console.log('Scene background color:', scene.background);
 
     // Create camera
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / (window.innerHeight * 0.75), 0.1, 1000);
     camera.position.set(0, 5, 10);
     camera.lookAt(0, 0, 0);
     console.log('Camera created and positioned');
+    console.log('Camera position:', camera.position);
 
     // Create renderer
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight * 0.75);
     document.getElementById('game-container').appendChild(renderer.domElement);
     console.log('Renderer created and added to DOM');
+    console.log('Renderer size:', renderer.getSize(new THREE.Vector2()));
 
     // Create lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -39,9 +42,9 @@ function init() {
     console.log('Ground plane added to scene');
 
     // Load GLB models
-    loadGLBModel('/static/models/agumon.glb', new THREE.Vector3(-2, 0, 0), 0.5, 'Agumon');
-    loadGLBModel('/static/models/rjmon.glb', new THREE.Vector3(0, 0, 0), 0.5, 'RJmon');
-    loadGLBModel('/static/models/veemon.glb', new THREE.Vector3(2, 0, 0), 0.5, 'Veemon');
+    await loadGLBModel('/static/models/agumon.glb', new THREE.Vector3(-2, 0, 0), 0.5, 'Agumon');
+    await loadGLBModel('/static/models/rjmon.glb', new THREE.Vector3(0, 0, 0), 0.5, 'RJmon');
+    await loadGLBModel('/static/models/veemon.glb', new THREE.Vector3(2, 0, 0), 0.5, 'Veemon');
 
     // Handle window resize
     window.addEventListener('resize', onWindowResize, false);
@@ -52,8 +55,16 @@ function init() {
     console.log('Scene contents:', scene.children);
 }
 
-function loadGLBModel(file, position, scale, name) {
+async function loadGLBModel(file, position, scale, name) {
     console.log(`Starting to load GLB model: ${name}`);
+    
+    const fileExists = await fetch(file).then(response => response.ok).catch(() => false);
+    if (!fileExists) {
+        console.error(`File not found: ${file}`);
+        createFallbackObject(position, scale, name);
+        return;
+    }
+    
     try {
         const loader = new GLTFLoader();
         loader.load(
@@ -75,22 +86,25 @@ function loadGLBModel(file, position, scale, name) {
                 console.error(`Error loading GLB model ${name}:`, error);
                 console.error('Error details:', error.message);
                 console.error('Error stack:', error.stack);
+                createFallbackObject(position, scale, name);
             }
         );
     } catch (error) {
         console.error(`Error initializing GLTFLoader for ${name}:`, error);
+        createFallbackObject(position, scale, name);
     }
+}
 
-    if (!scene.getObjectByName(name)) {
-        console.log(`Creating fallback object for ${name}`);
-        const geometry = new THREE.SphereGeometry(0.5, 32, 32);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const fallbackObject = new THREE.Mesh(geometry, material);
-        fallbackObject.position.set(position.x, position.y, position.z);
-        fallbackObject.name = name;
-        addLabel(fallbackObject, name);
-        scene.add(fallbackObject);
-    }
+function createFallbackObject(position, scale, name) {
+    console.log(`Creating fallback object for ${name}`);
+    const geometry = new THREE.SphereGeometry(0.5, 32, 32);
+    const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const fallbackObject = new THREE.Mesh(geometry, material);
+    fallbackObject.position.set(position.x, position.y, position.z);
+    fallbackObject.scale.set(scale, scale, scale);
+    fallbackObject.name = name;
+    addLabel(fallbackObject, name);
+    scene.add(fallbackObject);
 }
 
 function onWindowResize() {
@@ -141,7 +155,11 @@ function panCameraToObject(object) {
 function animate() {
     requestAnimationFrame(animate);
     if (scene && camera) {
-        TWEEN.update();
+        try {
+            TWEEN.update();
+        } catch (error) {
+            console.error('Error updating TWEEN:', error);
+        }
         renderer.render(scene, camera);
     } else {
         console.error('Scene or camera is undefined');
